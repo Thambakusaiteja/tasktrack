@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TaskTrack — Feature‑Rich To‑Do Manager (Web)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0f172a; /* slate-900 */
+      --panel:#111827; /* gray-900 */
+      --muted:#94a3b8; /* slate-400 */
+      --text:#e5e7eb; /* gray-200 */
+      --brand:#a78bfa; /* violet-300 */
+      --accent:#22d3ee; /* cyan-400 */
+      --green:#22c55e; --yellow:#f59e0b; --red:#ef4444;
+      --ring:rgba(34,211,238,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,Apple Color Emoji,Segoe UI Emoji;background:radial-gradient(1200px 600px at 80% -20%,rgba(167,139,250,.15),transparent),linear-gradient(180deg,#0b1220 0%, #0f172a 60%);color:var(--text)}
+    .container{max-width:1100px;margin:32px auto;padding:0 16px}
+    .app{background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.02));backdrop-filter: blur(6px);border:1px solid rgba(255,255,255,.06);border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.06)}
+    h1{margin:0;font-size:20px;letter-spacing:.2px}
+    .logo{display:flex;gap:10px;align-items:center}
+    .logo-badge{width:36px;height:36px;border-radius:12px;background:conic-gradient(from 180deg at 50% 50%,var(--accent),var(--brand));display:grid;place-items:center;color:#081016;font-weight:900}
+    .toolbar{display:flex;flex-wrap:wrap;gap:8px}
+    button, .btn{appearance:none;border:1px solid rgba(255,255,255,.08);background:#0b1220;color:var(--text);padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:600;transition:.2s;display:inline-flex;gap:8px;align-items:center}
+    button:hover,.btn:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,0,0,.35);border-color:rgba(255,255,255,.16)}
+    .btn-primary{background:linear-gradient(180deg,var(--brand),#7c3aed);border-color:transparent;color:#0b1220}
+    .btn-ghost{background:transparent}
+    .btn-danger{background:linear-gradient(180deg,#f87171,#ef4444);border-color:transparent;color:#0b1220}
+    .grid{display:grid;grid-template-columns: 1.3fr .7fr;gap:18px;padding:18px}
+    @media (max-width: 900px){.grid{grid-template-columns:1fr}}
+    .panel{background:rgba(2,6,23,.6);border:1px solid rgba(255,255,255,.06);border-radius:16px}
+    .panel header{border:0;padding:16px 16px 0}
+    .content{padding:16px}
+    .fields{display:grid;grid-template-columns:1fr 170px 190px;gap:10px}
+    @media (max-width: 720px){.fields{grid-template-columns:1fr 1fr}}
+    input, select{width:100%;padding:12px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:#0b1220;color:var(--text);outline:none}
+    input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 6px var(--ring)}
+    .list{display:flex;flex-direction:column;gap:10px}
+    .task{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(255,255,255,.02)}
+    .task-title{font-weight:600}
+    .muted{color:var(--muted)}
+    .badges{display:flex;gap:8px;flex-wrap:wrap}
+    .badge{font-size:12px;padding:4px 8px;border-radius:20px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04)}
+    .status-done{background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.35);color:#86efac}
+    .status-pending{background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.35);color:#facc15}
+    .status-overdue{background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#fda4af}
+    .priority-High{color:#fecaca}
+    .priority-Medium{color:#fde68a}
+    .priority-Low{color:#a7f3d0}
+    .actions{display:flex;gap:8px}
+    .empty{padding:22px;border:1px dashed rgba(255,255,255,.18);border-radius:14px;color:var(--muted);text-align:center}
+    .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    @media (max-width: 720px){.summary{grid-template-columns:repeat(2,1fr)}}
+    .card{padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.03)}
+    .card h3{margin:0 0 6px 0;font-size:13px;color:var(--muted);font-weight:600}
+    .card .big{font-size:26px;font-weight:700}
+    .searchbar{display:flex;gap:10px;align-items:center}
+    .searchbar input{flex:1}
+    .right-top{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+    .table{width:100%;border-collapse:collapse}
+    .table th,.table td{padding:10px;border-bottom:1px solid rgba(255,255,255,.06);text-align:left}
+    .hidden{display:none !important}
+    dialog{border:1px solid rgba(255,255,255,.12);border-radius:16px;background:#0b1220;color:var(--text);padding:0;max-width:520px;width:92%}
+    dialog::backdrop{background:rgba(2,6,23,.7)}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+    .modal-body{padding:16px;display:grid;gap:12px}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="app" role="application" aria-label="TaskTrack">
+      <header>
+        <div class="logo"><div class="logo-badge" aria-hidden="true">🧠</div><h1>TaskTrack — Feature‑Rich To‑Do Manager</h1></div>
+        <div class="toolbar">
+          <button class="btn-primary" id="btn-add">➕ Add Task</button>
+          <button class="btn" id="btn-overdue">⚠ Overdue</button>
+          <button class="btn" id="btn-export">⬇ Export CSV</button>
+          <button class="btn-ghost" id="btn-clear">🗑 Clear All</button>
+        </div>
+      </header>
+
+      <div class="grid">
+        <section class="panel" aria-labelledby="list-head">
+          <header>
+            <div class="searchbar">
+              <input type="text" id="search" placeholder="Search tasks… (title)" aria-label="Search tasks" />
+              <select id="filter-priority" aria-label="Filter by priority">
+                <option value="">All Priorities</option>
+                <option>High</option>
+                <option>Medium</option>
+                <option>Low</option>
+                <option>Normal</option>
+              </select>
+              <select id="filter-status" aria-label="Filter by status">
+                <option value="">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="overdue">Overdue</option>
+                <option value="done">Done</option>
+              </select>
+              <select id="sort" aria-label="Sort tasks">
+                <option value="created_desc">Newest</option>
+                <option value="created_asc">Oldest</option>
+                <option value="due_asc">Due Date ↑</option>
+                <option value="due_desc">Due Date ↓</option>
+                <option value="title_asc">Title A→Z</option>
+              </select>
+            </div>
+          </header>
+          <div class="content">
+            <div id="list" class="list" aria-live="polite"></div>
+          </div>
+        </section>
+
+        <aside class="panel" aria-labelledby="summary-head">
+          <header><h2 id="summary-head" class="muted">📊 Task Summary</h2></header>
+          <div class="content">
+            <div class="summary">
+              <div class="card"><h3>Total Tasks</h3><div id="sum-total" class="big">0</div></div>
+              <div class="card"><h3>Completed</h3><div id="sum-completed" class="big">0</div></div>
+              <div class="card"><h3>Pending</h3><div id="sum-pending" class="big">0</div></div>
+              <div class="card"><h3>Overdue</h3><div id="sum-overdue" class="big">0</div></div>
+            </div>
+            <div class="card" style="margin-top:12px">
+              <h3>Quick Add</h3>
+              <div class="fields" style="grid-template-columns:1fr 140px 1fr;align-items:start">
+                <input id="qa-title" placeholder="Task title"/>
+                <select id="qa-priority">
+                  <option>Normal</option>
+                  <option>High</option>
+                  <option>Medium</option>
+                  <option>Low</option>
+                </select>
+                <input id="qa-due" type="date" />
+              </div>
+              <div style="margin-top:10px;display:flex;justify-content:flex-end">
+                <button class="btn-primary" id="qa-add">Add</button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <dialog id="modal">
+    <div class="modal-head">
+      <strong id="modal-title">Add Task</strong>
+      <button class="btn" id="modal-close" title="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <label>Title<input id="m-title" placeholder="e.g., Finish report" /></label>
+      <label>Priority
+        <select id="m-priority">
+          <option>Normal</option>
+          <option>High</option>
+          <option>Medium</option>
+          <option>Low</option>
+        </select>
+      </label>
+      <label>Due Date<input id="m-due" type="date" /></label>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px">
+        <button class="btn" id="m-cancel">Cancel</button>
+        <button class="btn-primary" id="m-save">Save</button>
+      </div>
+    </div>
+  </dialog>
+
+  <template id="task-template">
+    <div class="task">
+      <input type="checkbox" class="toggle" title="Mark complete" />
+      <div>
+        <div class="task-title"></div>
+        <div class="muted small"></div>
+        <div class="badges"></div>
+      </div>
+      <div class="actions">
+        <button class="btn" data-action="edit" title="Edit">📝</button>
+        <button class="btn" data-action="delete" title="Delete">🗑</button>
+      </div>
+    </div>
+  </template>
+
+  <script>
+  // ===== Storage & Model =====
+  const STORAGE_KEY = 'tasktrack.tasks.v1';
+  const now = () => new Date();
+  const parseDate = s => s ? new Date(s) : null;
+  const fmtDate = d => d ? new Date(d).toISOString().slice(0,10) : '';
+  const niceDateTime = d => new Date(d).toLocaleString();
+
+  function load(){
+    try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [] }catch{ return [] }
+  }
+  function save(tasks){ localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); }
+  function uid(){ return Math.random().toString(36).slice(2,9); }
+
+  function isOverdue(task){
+    return !!task.dueDate && !task.completed && new Date(task.dueDate).getTime() < now().setHours(0,0,0,0);
+  }
+
+  let tasks = load();
+
+  // ===== DOM Helpers =====
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+  // Elements
+  const listEl = $('#list');
+  const searchEl = $('#search');
+  const filterPriorityEl = $('#filter-priority');
+  const filterStatusEl = $('#filter-status');
+  const sortEl = $('#sort');
+
+  const sumTotalEl = $('#sum-total');
+  const sumCompletedEl = $('#sum-completed');
+  const sumPendingEl = $('#sum-pending');
+  const sumOverdueEl = $('#sum-overdue');
+
+  // Modal elements
+  const modal = $('#modal');
+  const mTitle = $('#m-title');
+  const mPriority = $('#m-priority');
+  const mDue = $('#m-due');
+  const modalTitle = $('#modal-title');
+
+  let editingId = null;
+
+  // ===== Rendering =====
+  function render(){
+    const q = (searchEl.value||'').toLowerCase();
+    const p = filterPriorityEl.value;
+    const s = filterStatusEl.value;
+    const sort = sortEl.value;
+
+    let view = tasks.filter(t => t.title.toLowerCase().includes(q));
+    if(p) view = view.filter(t => (t.priority||'Normal') === p);
+    if(s){
+      view = view.filter(t => {
+        if(s==='done') return !!t.completed;
+        if(s==='overdue') return isOverdue(t);
+        return !t.completed && !isOverdue(t); // pending
+      });
+    }
+
+    view.sort((a,b)=>{
+      switch(sort){
+        case 'created_asc': return new Date(a.createdAt)-new Date(b.createdAt);
+        case 'due_asc': return (a.dueDate||'9999') < (b.dueDate||'9999') ? -1 : 1;
+        case 'due_desc': return (a.dueDate||'0000') < (b.dueDate||'0000') ? 1 : -1;
+        case 'title_asc': return a.title.localeCompare(b.title);
+        default: return new Date(b.createdAt)-new Date(a.createdAt);
+      }
+    });
+
+    listEl.innerHTML = '';
+    if(!view.length){
+      const div = document.createElement('div');
+      div.className='empty';
+      div.textContent = '⚠ No tasks match your filters.';
+      listEl.appendChild(div);
+    } else {
+      view.forEach(t => listEl.appendChild(renderTask(t)));
+    }
+
+    // Summary
+    const total = tasks.length;
+    const completed = tasks.filter(t=>t.completed).length;
+    const overdue = tasks.filter(isOverdue).length;
+    const pending = total - completed;
+    sumTotalEl.textContent = total;
+    sumCompletedEl.textContent = completed;
+    sumPendingEl.textContent = pending;
+    sumOverdueEl.textContent = overdue;
+  }
+
+  function renderTask(t){
+    const tpl = document.getElementById('task-template');
+    const el = tpl.content.firstElementChild.cloneNode(true);
+    const titleEl = el.querySelector('.task-title');
+    const metaEl = el.querySelector('.muted');
+    const badgesEl = el.querySelector('.badges');
+    const toggle = el.querySelector('.toggle');
+
+    titleEl.textContent = t.title;
+    metaEl.textContent = `Priority: ${t.priority||'Normal'}${t.dueDate? ' • Due: '+fmtDate(t.dueDate): ''} • Created: ${niceDateTime(t.createdAt)}`;
+
+    // Badges
+    badgesEl.innerHTML = '';
+    const st = document.createElement('span');
+    st.className = 'badge ' + (t.completed ? 'status-done' : (isOverdue(t)?'status-overdue':'status-pending'));
+    st.textContent = t.completed ? '✅ Done' : (isOverdue(t) ? '⚠ Overdue' : '🕓 Pending');
+    const pr = document.createElement('span'); pr.className = 'badge priority-' + (t.priority||'Normal'); pr.textContent = (t.priority||'Normal') + ' priority';
+    badgesEl.appendChild(st); badgesEl.appendChild(pr);
+
+    // Checkbox
+    toggle.checked = !!t.completed;
+    toggle.addEventListener('change', () => { t.completed = toggle.checked; save(tasks); render(); });
+
+    // Actions
+    el.querySelector('[data-action="edit"]').addEventListener('click', ()=> openModal(t));
+    el.querySelector('[data-action="delete"]').addEventListener('click', ()=> delTask(t.id));
+
+    return el;
+  }
+
+  // ===== CRUD =====
+  function addTask({title, priority='Normal', dueDate=null}){
+    if(!title || !title.trim()) return;
+    tasks.unshift({ id: uid(), title: title.trim(), priority: (priority||'Normal').charAt(0).toUpperCase()+ (priority||'Normal').slice(1).toLowerCase(), createdAt: new Date().toISOString(), completed:false, dueDate: dueDate||null });
+    save(tasks); render();
+  }
+
+  function updateTask(id, payload){
+    const i = tasks.findIndex(t=>t.id===id); if(i<0) return;
+    tasks[i] = { ...tasks[i], ...payload };
+    save(tasks); render();
+  }
+
+  function delTask(id){
+    if(!confirm('Delete this task?')) return;
+    tasks = tasks.filter(t=>t.id!==id); save(tasks); render();
+  }
+
+  // ===== Modal =====
+  function openModal(task=null){
+    editingId = task? task.id : null;
+    modalTitle.textContent = task? 'Edit Task' : 'Add Task';
+    mTitle.value = task? task.title : '';
+    mPriority.value = task? (task.priority||'Normal') : 'Normal';
+    mDue.value = task && task.dueDate? fmtDate(task.dueDate) : '';
+    if(typeof modal.showModal === 'function') modal.showModal(); else modal.classList.remove('hidden');
+    mTitle.focus();
+  }
+  function closeModal(){ if(modal.open) modal.close(); else modal.classList.add('hidden'); editingId=null; }
+
+  // ===== Export CSV =====
+  function exportCSV(){
+    const header = ['Title','Priority','Created At','Due Date','Completed'];
+    const rows = tasks.map(t=>[
+      escapeCSV(t.title), escapeCSV(t.priority||'Normal'), niceDateTime(t.createdAt), fmtDate(t.dueDate), t.completed
+    ]);
+    const csv = [header, ...rows].map(r=>r.join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'tasks_export.csv'; a.click();
+    URL.revokeObjectURL(url);
+  }
+  function escapeCSV(v){
+    v = (v??'').toString();
+    return /[",\n]/.test(v) ? '"'+v.replaceAll('"','""')+'"' : v;
+  }
+
+  // ===== Event wiring =====
+  $('#btn-add').addEventListener('click', ()=> openModal());
+  $('#btn-overdue').addEventListener('click', ()=>{ filterStatusEl.value='overdue'; render(); });
+  $('#btn-export').addEventListener('click', exportCSV);
+  $('#btn-clear').addEventListener('click', ()=>{
+    if(confirm('Are you sure you want to delete ALL tasks?')){ tasks = []; save(tasks); render(); }
+  });
+
+  $('#qa-add').addEventListener('click', ()=>{
+    const title = $('#qa-title').value; const priority = $('#qa-priority').value; const due = $('#qa-due').value || null;
+    addTask({title, priority, dueDate: due});
+    $('#qa-title').value=''; $('#qa-due').value='';
+  });
+
+  ['input','change'].forEach(evt=>{
+    searchEl.addEventListener(evt, render);
+    filterPriorityEl.addEventListener(evt, render);
+    filterStatusEl.addEventListener(evt, render);
+    sortEl.addEventListener(evt, render);
+  });
+
+  $('#modal-close').addEventListener('click', closeModal);
+  $('#m-cancel').addEventListener('click', closeModal);
+  $('#m-save').addEventListener('click', ()=>{
+    const payload = { title: mTitle.value.trim(), priority: mPriority.value, dueDate: mDue.value || null };
+    if(!payload.title){ alert('Title is required.'); return; }
+    if(editingId) updateTask(editingId, payload); else addTask(payload);
+    closeModal();
+  });
+
+  // Keyboard: Enter to save in modal
+  [mTitle,mPriority,mDue].forEach(el=> el.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); $('#m-save').click(); }}));
+
+  // Initial render
+  render();
+  </script>
+</body>
+</html>
